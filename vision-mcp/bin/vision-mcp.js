@@ -34,8 +34,17 @@ if (!fs.existsSync(serverPy)) {
   process.exit(1);
 }
 
-// 检查 Python 是否可用
-const pythonCmd = process.platform === "win32" ? "python" : "python3";
+// 检测 Python 命令（试 python3 再试 python）
+const pythonCmd = (() => {
+  if (process.platform === "win32") return "python";
+  // macOS/Linux: 优先 python3，fallback python
+  try {
+    require("child_process").execSync("python3 --version", { stdio: "ignore" });
+    return "python3";
+  } catch {
+    return "python";
+  }
+})();
 
 // 启动 Python 进程
 const child = spawn(pythonCmd, [serverPy, ...process.argv.slice(2)], {
@@ -52,5 +61,7 @@ child.on("exit", (code) => {
 child.on("error", (err) => {
   console.error("[vision-mcp] 启动 Python 失败:", err.message);
   console.error("  请确保已安装 Python 3.10+ (https://python.org)");
+  console.error("  如果已安装 Python，请检查是否安装了必要依赖：");
+  console.error("    pip install -r %s", path.join(scriptDir, "requirements.txt"));
   process.exit(1);
 });

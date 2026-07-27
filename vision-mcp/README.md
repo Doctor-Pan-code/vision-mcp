@@ -26,6 +26,8 @@
 
 | 模式 | 命令 | 适用场景 |
 |------|------|----------|
+| **npx** | `npx vision-mcp` | 有 Node.js 的用户一键运行 |
+| **uvx** | `uvx --from git+https://github.com/DoctorPan/vision-mcp vision-mcp` | 有 uv 的用户一键运行 |
 | **Stdio**（默认） | `python server.py` | 本地 AI 客户端（Cherry Studio / Claude Desktop / Cursor 等） |
 | **SSE** | `python server.py --transport sse --port 8000` | 魔搭 Hosted 部署 / 远程 HTTP 接入 |
 
@@ -74,27 +76,29 @@ analyze_image(
 
 ## 一键运行（无需手动安装）
 
-项目支持 npx / uvx / pip 三种方式一键运行，无需手动克隆仓库和安装依赖。
+项目支持 npx / uvx / pip 三种方式一键运行，无需手动克隆仓库。
 
 | 方式 | 命令 | 前提条件 |
 |------|------|----------|
-| **npx** | `npx vision-mcp` | 安装 Node.js 18+ + Python 3.10+ |
-| **uvx** | `uvx vision-mcp` | 安装 uv |
-| **pip** | `pip install vision-mcp && vision-mcp` | 安装 Python 3.10+ |
+| **npx** | `npx vision-mcp` | 安装 Node.js 18+ + Python 3.10+（npx 会自动安装 npm 包） |
+| **uvx** | `uvx --from git+https://github.com/DoctorPan/vision-mcp vision-mcp` | 安装 uv（自动安装 Python 依赖） |
+| **pip** | `pip install git+https://github.com/DoctorPan/vision-mcp && vision-mcp` | 安装 Python 3.10+ |
 
 ```bash
-# npx 运行（默认 stdio 模式）
+# npx 运行（默认 stdio 模式，适用于本地 Reasonix 接入）
 npx vision-mcp
 
-# npx 运行（SSE 模式，用于魔搭部署）
+# npx 运行（SSE 模式，用于远程测试）
 npx vision-mcp --transport sse --port 8000
 
-# uvx 运行
-uvx vision-mcp --transport sse --port 8000
+# uvx 运行（从 GitHub 自动拉取并安装依赖）
+uvx --from git+https://github.com/DoctorPan/vision-mcp vision-mcp --transport sse --port 8000
 ```
 
-> **注意**：首次运行 npx 会自动从 npm 和 PyPI 下载依赖，之后会缓存。
-> API Key 等配置通过 `.env` 文件或系统环境变量传入。
+> **注意**：
+> - npx 会自动从 npm 拉取包装器，但 **Python 依赖（mcp, openai 等）需提前安装**：`pip install -r requirements.txt`
+> - uvx 会自动处理 Python 依赖安装
+> - API Key 等配置通过环境变量或 `.env` 文件传入
 
 ## 快速开始（本地开发）
 
@@ -177,11 +181,11 @@ python server.py --transport sse --port 8000
 #### 第 1 步：将代码推送到 GitHub
 
 ```bash
-cd C:\Users\jige\Desktop\个人网站开发\vision-mcp
+cd vision-mcp
 git init
 git add .
 git commit -m "初始提交"
-git remote add origin https://github.com/你的用户名/vision-mcp.git
+git remote add origin https://github.com/DoctorPan/vision-mcp.git
 git push -u origin main
 ```
 
@@ -196,8 +200,8 @@ git push -u origin main
 | 服务名称 | `vision-mcp` |
 | 中文名称 | 视觉能力代理 |
 | 描述 | 让 LLM 通过 MCP 调用视觉模型分析图片。支持硅基流动、OpenAI、阿里云通义千问等多个提供商。 |
-| 源代码地址 | `https://github.com/你的用户名/vision-mcp` |
-| **启动命令** | `npx vision-mcp --transport sse --port 8000`（推荐）或 `uvx --from git+https://github.com/DoctorPan/vision-mcp vision-mcp --transport sse --port 8000` |
+| 源代码地址 | `https://github.com/DoctorPan/vision-mcp` |
+| **启动命令** | `python server.py --transport sse --port 8000`（魔搭标准 Python 环境原生支持） |
 | 传输方式 | SSE |
 
 4. 点击提交，等待审核
@@ -243,8 +247,8 @@ https://mcp.api-inference.modelscope.net/xxxxx/mcp
 # 方式一：通过 npx（推荐，自动拉取）
 npx vision-mcp --help
 
-# 方式二：通过 uvx
-uvx vision-mcp --help
+# 方式二：通过 uvx（从 GitHub 自动安装依赖）
+uvx --from git+https://github.com/DoctorPan/vision-mcp vision-mcp --help
 
 # 方式三：直接运行
 python server.py --help
