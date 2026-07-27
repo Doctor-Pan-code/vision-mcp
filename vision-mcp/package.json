@@ -1,0 +1,36 @@
+{
+  "name": "vision-mcp",
+  "version": "1.0.0",
+  "description": "Vision MCP Server - 视觉能力代理。让 LLM 通过 MCP 调用视觉模型分析图片，支持 stdio/SSE 双传输协议。",
+  "type": "commonjs",
+  "bin": {
+    "vision-mcp": "./bin/vision-mcp.js"
+  },
+  "files": [
+    "bin/",
+    "server.py",
+    "pyproject.toml",
+    "requirements.txt",
+    ".env.example",
+    "README.md"
+  ],
+  "keywords": [
+    "mcp",
+    "vision",
+    "modelscope",
+    "ai",
+    "llm"
+  ],
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/DoctorPan/vision-mcp.git"
+  },
+  "bugs": {
+    "url": "https://github.com/DoctorPan/vision-mcp/issues"
+  },
+  "homepage": "https://github.com/DoctorPan/vision-mcp#readme",
+  "engines": {
+    "node": ">=18.0.0"
+  }
+}

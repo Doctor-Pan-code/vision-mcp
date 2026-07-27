@@ -72,6 +72,30 @@ analyze_image(
 | dashscope | `qwen-vl-plus`（默认）、`qwen-vl-max`、`qwen2.5-vl-72b-instruct` |
 | custom | 由你的自定义接口决定 |
 
+## 一键运行（无需手动安装）
+
+项目支持 npx / uvx / pip 三种方式一键运行，无需手动克隆仓库和安装依赖。
+
+| 方式 | 命令 | 前提条件 |
+|------|------|----------|
+| **npx** | `npx vision-mcp` | 安装 Node.js 18+ + Python 3.10+ |
+| **uvx** | `uvx vision-mcp` | 安装 uv |
+| **pip** | `pip install vision-mcp && vision-mcp` | 安装 Python 3.10+ |
+
+```bash
+# npx 运行（默认 stdio 模式）
+npx vision-mcp
+
+# npx 运行（SSE 模式，用于魔搭部署）
+npx vision-mcp --transport sse --port 8000
+
+# uvx 运行
+uvx vision-mcp --transport sse --port 8000
+```
+
+> **注意**：首次运行 npx 会自动从 npm 和 PyPI 下载依赖，之后会缓存。
+> API Key 等配置通过 `.env` 文件或系统环境变量传入。
+
 ## 快速开始（本地开发）
 
 ```bash
@@ -100,6 +124,26 @@ python server.py --transport sse --port 8000
     "vision-mcp": {
       "command": "python",
       "args": ["C:\\path\\to\\vision-mcp\\server.py"],
+      "env": {
+        "VISION_API_KEY": "你的硅基流动 API Key",
+        "VISION_PROVIDER": "siliconflow",
+        "DEFAULT_VISION_MODEL": "Qwen/Qwen2-VL-72B-Instruct"
+      }
+    }
+  }
+}
+```
+
+## 在 Reasonix 中配置（通过 npx 一键运行）
+
+无需克隆仓库、无需 `pip install`，Reasonix 自动通过 npx 从 npm 拉取运行：
+
+```json
+{
+  "mcpServers": {
+    "vision-mcp": {
+      "command": "npx",
+      "args": ["vision-mcp"],
       "env": {
         "VISION_API_KEY": "你的硅基流动 API Key",
         "VISION_PROVIDER": "siliconflow",
@@ -153,7 +197,7 @@ git push -u origin main
 | 中文名称 | 视觉能力代理 |
 | 描述 | 让 LLM 通过 MCP 调用视觉模型分析图片。支持硅基流动、OpenAI、阿里云通义千问等多个提供商。 |
 | 源代码地址 | `https://github.com/你的用户名/vision-mcp` |
-| **启动命令** | `python server.py --transport sse --port 8000` |
+| **启动命令** | `npx vision-mcp --transport sse --port 8000`（推荐）或 `uvx --from git+https://github.com/DoctorPan/vision-mcp vision-mcp --transport sse --port 8000` |
 | 传输方式 | SSE |
 
 4. 点击提交，等待审核
@@ -196,8 +240,16 @@ https://mcp.api-inference.modelscope.net/xxxxx/mcp
 ## 命令行参数
 
 ```bash
+# 方式一：通过 npx（推荐，自动拉取）
+npx vision-mcp --help
+
+# 方式二：通过 uvx
+uvx vision-mcp --help
+
+# 方式三：直接运行
 python server.py --help
 
+# 输出：
 usage: server.py [-h] [--transport {stdio,sse}] [--host HOST] [--port PORT]
 
 Vision MCP Server - 视觉能力代理

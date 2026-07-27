@@ -1,0 +1,25 @@
+[build-system]
+requires = ["setuptools>=64.0"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "vision-mcp"
+version = "1.0.0"
+description = "Vision MCP Server - 视觉能力代理。让 LLM 通过 MCP 调用视觉模型分析图片，支持硅基流动 / OpenAI / 阿里云通义千问等多个提供商。"
+readme = "README.md"
+requires-python = ">=3.10"
+license = {text = "MIT"}
+keywords = ["mcp", "vision", "llm", "ai", "modelscope"]
+
+dependencies = [
+    "mcp>=1.0.0",
+    "openai>=1.0.0",
+    "python-dotenv>=1.0.0",
+    "httpx>=0.27.0",
+]
+
+[project.scripts]
+vision-mcp = "server:main"
+
+[tool.setuptools]
+py-modules = ["server"]

@@ -1,0 +1,9 @@
+README.md
+pyproject.toml
+server.py
+vision_mcp.egg-info/PKG-INFO
+vision_mcp.egg-info/SOURCES.txt
+vision_mcp.egg-info/dependency_links.txt
+vision_mcp.egg-info/entry_points.txt
+vision_mcp.egg-info/requires.txt
+vision_mcp.egg-info/top_level.txt
