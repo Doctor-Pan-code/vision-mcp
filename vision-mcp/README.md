@@ -20,6 +20,20 @@
 | **阿里云通义千问** | `dashscope` | 国内访问，需阿里云 AK |
 | **自定义接口** | `custom` | 任何 OpenAI 兼容接口（Ollama / vLLM / 中转） |
 
+## 启动方式（双传输模式）
+
+一套代码，两种启动方式：
+
+| 模式 | 命令 | 适用场景 |
+|------|------|----------|
+| **Stdio**（默认） | `python server.py` | 本地 AI 客户端（Cherry Studio / Claude Desktop / Cursor 等） |
+| **SSE** | `python server.py --transport sse --port 8000` | 魔搭 Hosted 部署 / 远程 HTTP 接入 |
+
+优先级：**命令行参数 > 环境变量 > 默认值**。例如：
+- `python server.py --transport sse --port 8080` — 强制 SSE 模式，端口 8080
+- 设置环境变量 `VISION_MCP_TRANSPORT=sse` 再 `python server.py` — 也是 SSE 模式
+- 直接 `python server.py` — 默认 stdio 模式（向后兼容）
+
 ## 如何选择模型
 
 你有两种方式指定使用的视觉模型：
@@ -45,7 +59,7 @@
 analyze_image(
   image_url="https://example.jpg",
   prompt="这张图里有什么？",
-  model="Qwen/Qwen3-VL-72B-Instruct"   ← 每次可自由切换
+  model="Qwen/Qwen3-VL-72B-Instruct"
 )
 ```
 
@@ -58,7 +72,7 @@ analyze_image(
 | dashscope | `qwen-vl-plus`（默认）、`qwen-vl-max`、`qwen2.5-vl-72b-instruct` |
 | custom | 由你的自定义接口决定 |
 
-## 本地使用（stdio 模式）
+## 快速开始（本地开发）
 
 ```bash
 # 1. 安装依赖
@@ -70,13 +84,15 @@ copy .env.example .env
 # 3. 编辑 .env，填入你的配置
 #    VISION_API_KEY=sk-xxx
 #    VISION_PROVIDER=siliconflow
-#    DEFAULT_VISION_MODEL=Qwen/Qwen2-VL-72B-Instruct
 
-# 4. 启动
+# 4. 启动（默认 stdio 模式）
 python server.py
+
+# 或者本地测试 SSE 模式
+python server.py --transport sse --port 8000
 ```
 
-### 在 Reasonix 中配置（本地 stdio）
+## 在 Reasonix 中配置（本地 stdio）
 
 ```json
 {
@@ -94,9 +110,23 @@ python server.py
 }
 ```
 
+## 在 Reasonix 中配置（远程 SSE URL）
+
+部署到魔搭后拿到 SSE URL：
+
+```json
+{
+  "mcpServers": {
+    "vision-mcp": {
+      "url": "https://mcp.api-inference.modelscope.net/xxxxx/mcp"
+    }
+  }
+}
+```
+
 ## 部署到魔搭 Hosted（SSE 模式）🚀
 
-魔搭社区提供 **Hosted MCP** 服务，可以将你的 MCP 服务器部署在魔搭云端，生成一个 SSE URL 供所有人使用。这是推荐的使用方式。
+魔搭社区提供 Hosted MCP 服务，可以将你的 MCP 服务器部署在魔搭云端，生成 SSE URL 供远程调用。
 
 ### 部署步骤
 
@@ -123,7 +153,7 @@ git push -u origin main
 | 中文名称 | 视觉能力代理 |
 | 描述 | 让 LLM 通过 MCP 调用视觉模型分析图片。支持硅基流动、OpenAI、阿里云通义千问等多个提供商。 |
 | 源代码地址 | `https://github.com/你的用户名/vision-mcp` |
-| 启动命令 | `python server.py` |
+| **启动命令** | `python server.py --transport sse --port 8000` |
 | 传输方式 | SSE |
 
 4. 点击提交，等待审核
@@ -132,57 +162,24 @@ git push -u origin main
 
 审核通过后：
 
-1. 在 MCP 管理页面找到 `vision-mcp`，点击 **部署**
-2. 选择 **Hosted** 部署类型
-3. 配置环境变量（**这一步最关键**）：
+1. 在 MCP 管理页面找到 `vision-mcp`，点击部署
+2. 选择 Hosted 部署类型
+3. 配置环境变量：
 
-```json
-{
-  "VISION_MCP_TRANSPORT": "sse",
-  "VISION_API_KEY": "你的视觉模型 API Key",
-  "VISION_PROVIDER": "siliconflow",
-  "DEFAULT_VISION_MODEL": "Qwen/Qwen2-VL-72B-Instruct"
-}
-```
-
-| 变量 | 必填 | 说明 |
-|------|------|------|
-| `VISION_MCP_TRANSPORT` | ✅ 是 | 设为 `sse` 才能以 Hosted 模式运行 |
-| `VISION_API_KEY` | ✅ 是 | 你在对应提供商的 API Key |
-| `VISION_PROVIDER` | ❌ 可选 | 默认 `siliconflow`，可改为 `openai` / `dashscope` / `custom` |
-| `DEFAULT_VISION_MODEL` | ❌ 可选 | 默认根据提供商自动选择，可自定义 |
-| `VISION_BASE_URL` | ❌ 可选 | 仅 `custom` 提供商需要 |
-
-4. 选择 **长期有效**，部署
+| 变量 | 必填 | 值 |
+|------|------|-----|
+| `VISION_API_KEY` | ✅ | 你的视觉模型 API Key |
+| `VISION_PROVIDER` | ❌ 可选 | `siliconflow`（默认） |
+| `DEFAULT_VISION_MODEL` | ❌ 可选 | `Qwen/Qwen2-VL-72B-Instruct` |
 
 部署成功后，魔搭会生成一个 SSE URL，格式为：
 ```
 https://mcp.api-inference.modelscope.net/xxxxx/mcp
 ```
 
-### 在 Reasonix 中使用 Hosted SSE URL
-
-拿到 SSE URL 后，在 `.mcp.json` 中配置：
-
-```json
-{
-  "mcpServers": {
-    "vision-mcp": {
-      "url": "https://mcp.api-inference.modelscope.net/xxxxx/mcp"
-    }
-  }
-}
-```
-
-这样配置后，每次使用都会通过魔搭云端调用你的 MCP 服务器，**本地不需要安装 Python 环境**。
-
 ### 分享给其他人
 
-你的 MCP 部署到魔搭后，其他人可以在魔搭 MCP 广场搜索到它。他们部署时只需填入**自己的** `VISION_API_KEY` 和 `VISION_PROVIDER`：
-
-- 你的 API Key 不会泄露给他们
-- 他们的 Key 也不会被你看到
-- **每个人各自配置自己的 Key**
+你的 MCP 部署到魔搭后，其他人可以在魔搭 MCP 广场搜索到它。他们部署时只需填入**自己的** `VISION_API_KEY` 和 `VISION_PROVIDER`，你的 Key 不会泄露。
 
 ## 环境变量速查
 
@@ -192,21 +189,26 @@ https://mcp.api-inference.modelscope.net/xxxxx/mcp
 | `VISION_PROVIDER` | 选择提供商 | `siliconflow` / `openai` / `dashscope` / `custom` |
 | `VISION_BASE_URL` | 自定义 API 地址 | `https://your-api.com/v1` |
 | `DEFAULT_VISION_MODEL` | 每次调用的默认模型 | `gpt-4o` |
-| `VISION_MCP_TRANSPORT` | 传输模式：`stdio`（本地）或 `sse`（Hosted） | `sse` |
+| `VISION_MCP_TRANSPORT` | 传输模式 | `stdio`（本地） / `sse`（远程） |
+| `VISION_MCP_HOST` | SSE 监听地址 | `0.0.0.0` |
+| `VISION_MCP_PORT` | SSE 监听端口 | `8000` |
 
-## 全功能配置示例（Reasonix + Hosted）
+## 命令行参数
 
-```json
-{
-  "mcpServers": {
-    "vision-mcp": {
-      "url": "https://mcp.api-inference.modelscope.net/xxxxx/mcp"
-    }
-  }
-}
+```bash
+python server.py --help
+
+usage: server.py [-h] [--transport {stdio,sse}] [--host HOST] [--port PORT]
+
+Vision MCP Server - 视觉能力代理
+
+options:
+  -h, --help            show this help message and exit
+  --transport {stdio,sse}
+                        传输模式: stdio (默认) / sse (远程部署)
+  --host HOST           SSE 监听地址 (默认 0.0.0.0)
+  --port PORT           SSE 监听端口 (默认 8000)
 ```
-
-Hosted 部署时，模型选择在魔搭的环境变量中配置，使用时不需额外参数。
 
 ## 许可证
 

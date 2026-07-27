@@ -19,6 +19,7 @@ API Key 配置方式（按优先级）：
 """
 
 import os
+import argparse
 from typing import Optional
 from dotenv import load_dotenv
 from openai import OpenAI
@@ -279,11 +280,42 @@ def list_vision_models() -> str:
 
 
 # ============================================================
-# 7. 服务器入口
+# 7. 命令行参数解析
+# ============================================================
+
+def _parse_args():
+    """解析命令行参数，环境变量作为 fallback"""
+    parser = argparse.ArgumentParser(
+        description="Vision MCP Server - 视觉能力代理"
+    )
+    parser.add_argument(
+        "--transport",
+        choices=["stdio", "sse"],
+        default=os.getenv("VISION_MCP_TRANSPORT", "stdio"),
+        help="传输模式: stdio (本地标准输入输出, 默认) / sse (远程HTTP, 用于魔搭部署)",
+    )
+    parser.add_argument(
+        "--host",
+        default=os.getenv("VISION_MCP_HOST", "0.0.0.0"),
+        help="SSE 模式监听地址 (默认 0.0.0.0)",
+    )
+    parser.add_argument(
+        "--port",
+        type=int,
+        default=int(os.getenv("VISION_MCP_PORT", "8000")),
+        help="SSE 模式监听端口 (默认 8000)",
+    )
+    return parser.parse_args()
+
+
+# ============================================================
+# 8. 服务器入口
 # ============================================================
 
 def main():
     """启动 MCP 服务器"""
+    args = _parse_args()
+
     print("=" * 50)
     print("  Vision MCP Server - 视觉能力代理")
     print("=" * 50)
@@ -293,14 +325,20 @@ def main():
     print("  API Key:    %s" % ("[OK] 已配置" if API_KEY else "[!] 未配置"))
     print("=" * 50)
 
-    transport = os.getenv("VISION_MCP_TRANSPORT", "stdio")
-
-    if transport == "sse":
-        print("  启动模式: SSE (HTTP) - 适用于魔搭远程部署")
+    if args.transport == "sse":
+        # 通过 settings 设置 host/port（FastMCP.run() 本身不支持这两参数）
+        mcp.settings.host = args.host
+        mcp.settings.port = args.port
+        print("  启动模式: SSE (Streamable HTTP)")
+        print("  监听地址: %s:%d" % (args.host, args.port))
+        print("  HTTP 端点: http://%s:%d/mcp" % (args.host, args.port))
+        print("  适用场景: 魔搭远程部署 / 远程 MCP 客户端接入")
         print("=" * 50)
         mcp.run(transport="sse")
     else:
-        print("  启动模式: stdio - 适用于本地 MCP 客户端配置")
+        print("  启动模式: stdio (标准输入输出)")
+        print("  适用场景: 本地 MCP 客户端 (Cherry Studio / Claude Desktop / Cursor 等)")
+        print("  命令行示例: python server.py --transport sse --port 8000")
         print("=" * 50)
         mcp.run(transport="stdio")
 
